@@ -1,9 +1,9 @@
 <?php
 
-$conf['ganglia_dir'] = dirname(dirname(dirname(__FILE__)));
+$conf['gweb_root'] = dirname(dirname(dirname(__FILE__)));
 
-include_once $conf['ganglia_dir'] . "/eval_conf.php";
-include_once $conf['ganglia_dir'] . "/lib/common_api.php";
+include_once $conf['gweb_root'] . "/eval_conf.php";
+include_once $conf['gweb_root'] . "/lib/common_api.php";
 
 //////////////////////////////////////////////////////////////////////////////
 // Add an event to the JSON event array
@@ -24,7 +24,7 @@ function ganglia_events_add( $event ) {
 } // end method ganglia_events_add
 
 //////////////////////////////////////////////////////////////////////////////
-// Gets a list of all events in an optional time range
+// Gets a list of all events that overlap with a specified time range
 //////////////////////////////////////////////////////////////////////////////
 function ganglia_events_get( $start = NULL, $end = NULL ) {
   global $conf;
@@ -37,14 +37,25 @@ function ganglia_events_get( $start = NULL, $end = NULL ) {
   }
 
   $events_array = array();
-
-  $s = ( $start == NULL ) ? 0 : $start;
-  $e = ( $end == NULL ) ? time() : $end;
-
-  foreach ( $orig_events_array AS $k => $v ) {
-    if ( ( ( $v['start_time'] >= $s) && ( $v['start_time'] <= $e ) ) ||
-      ( ( $v['end_time'] >= $s ) && ( $v['end_time'] <= $e ) ) ) {
-      $events_array[] = $v;
+  foreach ($orig_events_array AS $k => $evt) {
+    if ($evt['end_time'] != NULL) { // Duration event
+      if ($start == NULL) {
+        if ($evt['start_time'] <= $end && $evt['end_time'] >= $end)
+	  $events_array[] = $evt;
+      } else if ($end == NULL) {
+        if ($evt['start_time'] <= $start && $evt['end_time'] >= $start)
+	  $events_array[] = $evt;
+      } else {
+        if ($evt['end_time'] >= $start && $evt['start_time'] <= $end)
+	  $events_array[] = $evt;
+      }
+    } else { // Instantaneous event
+      if ($start == NULL && $evt['start_time'] == $end)
+	$events_array[] = $evt;
+      else if ($end == NULL && $evt['start_time'] == $start)
+	$events_array[] = $evt;
+      else if ($evt['start_time'] >= $start && $evt['start_time'] <= $end)
+	$events_array[] = $evt;
     }
   }
   return $events_array;

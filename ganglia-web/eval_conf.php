@@ -30,7 +30,9 @@ if ($conf['overlay_events'] && ($conf['overlay_events_provider'] == "json")) {
       chmod($events_file, 0755);
     }
   }
+}
 
+if ($conf['overlay_events']) {
   $event_color_map_file = $conf['overlay_events_color_map_file']; 
   if (!file_exists($event_color_map_file)) {
     $f = fopen($event_color_map_file, "w");
@@ -53,6 +55,11 @@ if ( ! isset($conf['rrds']) ||  ! is_readable($conf['rrds']) ) {
 if ( ! isset($conf['dwoo_compiled_dir']) || ! is_writeable($conf['dwoo_compiled_dir']) ) {
   $errors[] = "DWOO compiled templates directory '${conf['dwoo_compiled_dir']}' is not writeable.<br/>".
   "Please adjust <code>\$conf['dwoo_compiled_dir']</code>."; 
+}
+
+if ( ! isset($conf['dwoo_compiled_dir']) || ! is_writeable($conf['dwoo_compiled_dir']) ) {
+  $errors[] = "DWOO cache directory '${conf['dwoo_cache_dir']}' is not writeable.<br/>".
+  "Please adjust <code>\$conf['dwoo_cache_dir']</code>."; 
 }
 
 if( ! isSet($conf['views_dir']) || ! is_readable($conf['views_dir']) ) {
